@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: churn-api
+    ports:
+      - "8000:8000"
+    command: >
+      uvicorn src.api.main:app 
+      --host 0.0.0.0 
+      --port 8000 
+      --reload
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+      - ./reports:/app/reports
+    environment:
+      - PYTHONPATH=/app
+    restart: unless-stopped
+
+  ui:
+    build: .
+    container_name: churn-ui
+    ports:
+      - "8501:8501"
+    command: >
+      streamlit run src/ui/app.py 
+      --server.port 8501 
+      --server.address 0.0.0.0
+    depends_on:
+      - api
+    environment:
+      - API_URL=http://api:8000
+    restart: unless-stopped
